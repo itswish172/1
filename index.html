@@ -1,0 +1,248 @@
+<!doctype html>
+
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Birthday Wishes - Create & Share</title>
+<style>
+  :root{ --sky-start:#cfeefd; --sky-end:#e6f7ff; --bhagwa-start:#fff1e6; --bhagwa-end:#ffd7a6; }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:linear-gradient(to bottom,var(--sky-start),var(--sky-end)); transition:background 1.8s ease-in-out; min-height:100vh; }
+  header{ display:flex; align-items:center; justify-content:space-between; padding:12px 18px; }
+  .brand{ font-weight:700; color:#03224a; }
+  .create-btn{ font-size:12px; color:#ff0000; background:transparent; border:1px solid #ff0000; padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .layout{ max-width:980px; margin: 20px auto; padding:18px; }
+  .card{ background:rgba(255,255,255,0.7); border-radius:14px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+  .form-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .form-row input, .form-row textarea, .form-row button, .form-row select { padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:14px; }
+  .form-col{ flex:1; min-width:160px; }
+  label{ font-size:13px; color:#0b2447; display:block; margin-bottom:6px; font-weight:600; }
+  .small{ font-size:12px; color:#475569; margin-top:6px; }/* overlay countdown */ .overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:60; pointer-events:none; } .countwrap{ width:220px; height:220px; position:relative; pointer-events:none; } .countwrap svg{ width:100%; height:100%; transform:rotate(-90deg); } .countwrap circle{ fill:none; stroke-width:12; stroke-linecap:round; } .countwrap .bg{ stroke:#e2e8f0 } .countwrap .prog{ stroke:#0ea5e9; stroke-dasharray:314; stroke-dashoffset:314; transition:stroke-dashoffset 0.2s linear; } .countnum{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:900; color:#03224a; }
+
+/* main animation card */ .anim-wrap{ display:none; padding:24px; } .card.visible{ display:block; opacity:1; transform:none; transition:all .6s ease; } .card.hidden{ display:none; opacity:0; transform:translateY(8px) scale(.995); }
+
+.greeting h1{ margin:0; color:#03224a; font-size:26px; } .greeting p.msg{ margin:8px 0; font-weight:800; font-size:16px; background:linear-gradient(90deg,#f97316,#a78bfa,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+/* VISIT TOP box (centered, bolder & slightly larger) */ .visit-top{ text-align:center; font-weight:800; font-size:16px; margin-bottom:10px; color:#0b2447 }
+
+.visit{ font-size:14px; color:#0b2447; margin-top:6px; display:none; }
+
+/* photo circle (user can add image) */ .photo-circle{ width:140px; height:140px; border-radius:50%; background:#000; overflow:hidden; display:flex; align-items:center; justify-content:center; } .photo-circle img{ width:100%; height:100%; object-fit:cover; display:block }
+
+/* hide the small inner green zero circle as requested */ #countNum{ display:none; }
+
+/* From text bigger by 2px and bold */ .from-text{ font-size:15px; font-weight:800; color:#03224a }
+
+.emojis{ position:relative; width:100%; height:220px; pointer-events:none; display:none; } .emoji{ position:absolute; font-size:30px; will-change:transform; user-select:none; }
+
+.footer{ position:fixed; left:0; right:0; bottom:18px; text-align:center; font-weight:700; color:#ff4da6; display:none; } .bubble{ position:absolute; bottom:-120px; border-radius:50%; background:rgba(255,255,255,0.45); opacity:0.9 } body.celebrate{ background:linear-gradient(to bottom,var(--bhagwa-start),var(--bhagwa-end)); } body.celebrate .visit, body.celebrate .emojis, body.celebrate .footer { display:block; } body.celebrate .card { box-shadow:0 12px 50px rgba(2,6,23,0.18); }
+
+.linkbox{ display:flex; gap:8px; margin-top:10px; align-items:center; } .linkbox input{ flex:1; } .tiny{ font-size:12px; color:#334155; } @media(max-width:640px){ .countwrap{ width:180px; height:180px } .countnum{ font-size:2.4rem } .greeting h1{ font-size:20px } .photo-circle{ width:120px; height:120px } } </style>
+
+</head>
+<body><header>
+  <div class="brand">Birthday Wishes</div>
+  <button class="create-btn" id="openFormBtn">Create Birthday Wishes</button>
+</header><main class="layout">
+  <!-- FORM CARD (default visible for normal visits) -->
+  <section class="card" id="formCard">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div style="flex:1">
+        <strong style="font-size:15px">Create personalised wish & share</strong>
+        <div class="small">Apna naam (From), Dost ka naam (To), aur birthday date daalo — link generate kar lo.</div>
+      </div>
+      <div style="min-width:160px; text-align:right;">
+        <button class="create-btn" id="formTopOpen">Create</button>
+      </div>
+    </div><hr style="margin:12px 0; border:none; height:1px; background:#eef2ff" />
+
+<div id="formArea" style="margin-top:8px;">
+  <div class="form-row">
+    <div class="form-col">
+      <label>From (Aapka naam)</label>
+      <input id="fromName" placeholder="Vishal Tiwari" />
+    </div>
+    <div class="form-col">
+      <label>To (Birthday wale ka naam)</label>
+      <input id="toName" placeholder="Gaurav Bhai" />
+    </div>
+    <div style="min-width:160px">
+      <label>Birthday Date</label>
+      <input id="bdate" type="date" />
+    </div>
+  </div>
+
+  <div style="margin-bottom:8px;">
+    <label>Wishes (optional)</label>
+    <textarea id="msg" rows="2" placeholder="Happy Birthday! Stay blessed..."></textarea>
+  </div>
+
+  <div style="margin-bottom:8px;">
+    <label>Add photo of your friend (optional)</label>
+    <input id="photoInput" type="file" accept="image/*" />
+    <div class="tiny">Photo will be encoded into link (client-side only).</div>
+  </div>
+
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <button id="genLink" style="padding:10px 14px; border-radius:8px; background:#0ea5e9; color:#fff; border:none; cursor:pointer">Generate & Copy Link</button>
+    <button id="previewBtn" style="padding:10px 14px; border-radius:8px; background:#06b6d4; color:#fff; border:none; cursor:pointer">Preview Now</button>
+    <div class="tiny">Link will be short & encoded — names won't be human-readable in URL.</div>
+  </div>
+
+  <div class="linkbox" id="linkBox" style="display:none; margin-top:12px;">
+    <input id="resultLink" readonly />
+    <button id="copyBtn" style="padding:8px 10px; border-radius:8px; background:#ef4444; color:#fff; border:none; cursor:pointer">Copy</button>
+  </div>
+</div>
+
+  </section>  <!-- ANIMATION CARD (shown when link opened or preview) -->  <section class="card hidden" id="animCard">
+    <!-- Top centered box showing To name + birthday date (bold, slightly larger, centered) -->
+    <div class="visit-top" id="visitTop">&nbsp;</div><div class="greeting">
+  <h1 id="titleTo">Happy Birthday!</h1>
+  <p class="msg" id="wishMsg">[ मै विशाल तिवारी ... ]</p>
+  <div class="visit" id="visitDate"><b>Visit date:</b> <span id="visitDateText"></span></div>
+</div>
+
+<div style="margin-top:12px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+  <!-- Photo circle (user's friend photo) -->
+  <div style="flex-basis:160px; display:flex; justify-content:center; align-items:center;">
+    <div class="photo-circle" id="photoCircle">
+      <img id="photoImg" src="" alt="friend photo" />
+    </div>
+  </div>
+
+  <div style="flex:1">
+    <div class="small">From: <span class="from-text" id="fromText"></span></div>
+    <div class="small" style="margin-top:6px;">Live India Time: <span id="liveTime"></span></div>
+  </div>
+</div>
+
+<div style="margin-top:16px;">
+  <!-- inner countdown circle kept but inner number removed as requested -->
+  <div class="countdown-wrap" style="width:140px;height:140px;position:relative;">
+    <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"></circle><circle class="prog" cx="60" cy="60" r="50"></circle></svg>
+    <div class="count-num" id="countNum">0</div>
+  </div>
+</div>
+
+<div class="emojis" id="emojisArea"></div>
+
+  </section>
+</main><!-- overlay countdown shown first when opening a share link --><div class="overlay" id="overlay" style="display:none">
+  <div class="countwrap">
+    <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"></circle><circle class="prog" cx="60" cy="60" r="50"></circle></svg>
+    <div class="countnum" id="overlayCount">5</div>
+  </div>
+</div><div class="footer" id="footer">[ पार्टी के देने के लिए अपने दोस्त से मिले🙃😊 ]</div><script>
+/* encode/decode helpers (same as before) */
+function encodePayload(obj){ try{ const json = JSON.stringify(obj); const b = btoa(unescape(encodeURIComponent(json))); return b.split('').reverse().join(''); }catch(e){ return '' } }
+function decodePayload(str){ try{ const rev = str.split('').reverse().join(''); const json = decodeURIComponent(escape(atob(rev))); return JSON.parse(json); }catch(e){ return null } }
+function makeShortToken(payload){ const enc = encodePayload(payload); const short = enc.slice(0,12) + Math.random().toString(36).slice(2,6); return short; }
+
+/* UI elements */
+const openFormBtn = document.getElementById('openFormBtn');
+const formTopOpen = document.getElementById('formTopOpen');
+const formCard = document.getElementById('formCard');
+const formArea = document.getElementById('formArea');
+const genLinkBtn = document.getElementById('genLink');
+const previewBtn = document.getElementById('previewBtn');
+const linkBox = document.getElementById('linkBox');
+const resultLink = document.getElementById('resultLink');
+const copyBtn = document.getElementById('copyBtn');
+const overlay = document.getElementById('overlay');
+const overlayCount = document.getElementById('overlayCount');
+const animCard = document.getElementById('animCard');
+const titleTo = document.getElementById('titleTo');
+const wishMsg = document.getElementById('wishMsg');
+const visitDate = document.getElementById('visitDate');
+const visitDateText = document.getElementById('visitDateText');
+const visitTop = document.getElementById('visitTop');
+const fromText = document.getElementById('fromText');
+const countNum = document.getElementById('countNum');
+const liveTime = document.getElementById('liveTime');
+const emojisArea = document.getElementById('emojisArea');
+const footer = document.getElementById('footer');
+
+/* form inputs */
+const fromNameInput = document.getElementById('fromName');
+const toNameInput = document.getElementById('toName');
+const bdateInput = document.getElementById('bdate');
+const msgInput = document.getElementById('msg');
+const photoInput = document.getElementById('photoInput');
+
+function copyToClipboard(text){ navigator.clipboard?.writeText(text).then(()=> alert('Link copied to clipboard!'), ()=> { prompt('Copy this link manually', text); }); }
+openFormBtn.addEventListener('click', ()=> { formCard.scrollIntoView({behavior:'smooth'}); formTopOpen.click(); });
+formTopOpen.addEventListener('click', ()=> { formArea.style.transition='transform .25s'; formArea.style.transform='scale(1.01)'; setTimeout(()=> formArea.style.transform='scale(1)', 220); });
+
+/* read image file as dataURL (returns Promise) */
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const fr = new FileReader(); fr.onload = ()=> res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
+
+/* Generate link handler (handles optional photo) */
+genLinkBtn.addEventListener('click', async ()=> {
+  const from = (fromNameInput.value||'').trim() || 'Anonymous';
+  const to = (toNameInput.value||'').trim() || 'Friend';
+  const date = bdateInput.value || '';
+  const msg = (msgInput.value||'').trim() || '';
+  let photoData = '';
+  const f = photoInput.files && photoInput.files[0];
+  if(f){ try{ photoData = await readFileAsDataURL(f); }catch(e){ console.warn('photo read failed',e); }
+  }
+  const payload = { from, to, date, msg, photo: photoData, ts: Date.now() };
+  const token = makeShortToken(payload);
+  const enc = encodePayload(payload);
+  const url = location.origin + location.pathname + '#w=' + token + '~' + enc;
+  resultLink.value = url; linkBox.style.display = 'flex'; copyToClipboard(url);
+});
+
+/* Preview: build payload and start animation immediately */
+previewBtn.addEventListener('click', async ()=>{
+  const from = (fromNameInput.value||'').trim() || 'Anonymous';
+  const to = (toNameInput.value||'').trim() || 'Friend';
+  const date = bdateInput.value || '';
+  const msg = (msgInput.value||'').trim() || '';
+  let photoData = '';
+  const f = photoInput.files && photoInput.files[0];
+  if(f){ try{ photoData = await readFileAsDataURL(f); }catch(e){}
+  }
+  const payload = { from, to, date, msg, photo: photoData, ts: Date.now() };
+  startAnimationWithPayload(payload);
+  formCard.classList.add('hidden'); animCard.classList.remove('hidden'); animCard.classList.add('card','visible');
+});
+
+/* overlay countdown (exact 5s) */
+function startOverlayCountdown(callback){ overlay.style.display='flex'; overlayCount.textContent='5'; const overlayCircle = document.querySelector('.overlay .prog'); const overlayCirc = 2*Math.PI*50; overlayCircle.style.strokeDasharray = overlayCirc; overlayCircle.style.strokeDashoffset = overlayCirc; const TOTAL_MS = 5000; let start=null; function raf(ts){ if(!start) start=ts; const elapsed = ts-start; const t = Math.min(elapsed/TOTAL_MS,1); overlayCircle.style.strokeDashoffset = overlayCirc*(1-t); const remaining = Math.max(0,5-Math.floor(t*5)); overlayCount.textContent = remaining; if(t<1) requestAnimationFrame(raf); else { overlayCount.textContent=0; overlay.style.opacity=0; setTimeout(()=>{ overlay.style.display='none'; overlay.style.opacity='1'; },700); setTimeout(()=> callback && callback(),450); } } requestAnimationFrame(raf); }
+
+/* start animation with payload (decoded) */
+function startAnimationWithPayload(payload){ const to = payload.to || 'Friend'; const from = payload.from || 'Anonymous'; const date = payload.date || ''; const msg = payload.msg || `[ मै ${from} आज के शुभ दिन पर... ]`; titleTo.textContent = `Happy Birthday, ${to}! 🎉`; wishMsg.textContent = msg; fromText.textContent = from; visitDateText.textContent = date || '—'; // set top centered box: show "To — date" centered & bold
+  visitTop.textContent = `${to} — ${date || 'date unknown'}`;
+  // if photo provided, set src
+  const photoImg = document.getElementById('photoImg'); if(payload.photo){ photoImg.src = payload.photo; } else { photoImg.src = ''; photoImg.style.background='linear-gradient(135deg,#f97316,#06b6d4)'; }
+
+  // run overlay countdown then reveal
+  document.body.classList.remove('celebrate'); // ensure sky bg
+  startOverlayCountdown(()=>{
+    document.body.classList.add('celebrate'); // bhagwa
+    formCard.classList.add('hidden'); animCard.classList.remove('hidden'); animCard.classList.add('card','visible'); startInnerCount(); launchEmojis(); ensureBubbles(); footer.style.display='block';
+  });
+
+  // live India time
+  function updateTime(){ const now=new Date(); const opts={hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}; liveTime.textContent = now.toLocaleTimeString('hi-IN',opts); }
+  updateTime(); setInterval(updateTime,1000);
+}
+
+/* inner small countdown kept at 0 (hidden number) */
+function startInnerCount(){ const innerProg = document.querySelector('.card .prog'); const innerCirc = 2*Math.PI*50; innerProg.style.strokeDasharray = innerCirc; innerProg.style.strokeDashoffset = innerCirc * 0; }
+
+/* emojis & bubbles */
+function launchEmojis(){ const emojis = ["🎂","💐","🥳","🧁","🎊","🎉","🎶","🎵","🎺","👑","🎊","💌","🕯️","🧡","🌞","🌷"]; emojisArea.innerHTML=''; emojisArea.style.display='block'; for(let i=0;i<18;i++){ const s=document.createElement('span'); s.className='emoji'; s.textContent=emojis[i%emojis.length]; const left=Math.random()*80+5; const top=Math.random()*60+10; s.style.left=left+'%'; s.style.top=top+'%'; const dur=4+Math.random()*6; s.style.animation=`across ${dur}s ease-in-out ${Math.random()*0.8}s infinite`; s.style.opacity=0.95; emojisArea.appendChild(s); } if(!document.getElementById('acrossKey')){ const k=document.createElement('style'); k.id='acrossKey'; k.innerHTML='@keyframes across{0%{transform:translateX(0) translateY(0) rotate(0deg)}25%{transform:translateX(20vw) translateY(-8vh) rotate(15deg)}50%{transform:translateX(-5vw) translateY(-18vh) rotate(-20deg)}75%{transform:translateX(30vw) translateY(-10vh) rotate(10deg)}100%{transform:translateX(0) translateY(0) rotate(0deg)}}'; document.head.appendChild(k); } }
+function ensureBubbles(){ if(document.querySelectorAll('.bubble').length) return; for(let i=0;i<12;i++){ const b=document.createElement('div'); b.className='bubble'; const size=18+Math.random()*80; b.style.width=size+'px'; b.style.height=size+'px'; b.style.left=Math.random()*100+'%'; b.style.animationDuration=(6+Math.random()*10)+'s'; b.style.opacity=(0.2+Math.random()*0.6).toFixed(2); document.body.appendChild(b); } }
+
+/* load: check hash */
+window.addEventListener('load', ()=>{ const payload = getPayloadFromHash(); if(payload){ startAnimationWithPayload(payload); } else { formCard.classList.remove('hidden'); } });
+
+/* parse various hash formats */
+function getPayloadFromHash(){ const h = decodeURIComponent(location.hash || ''); if(!h) return null; let m = h.match(/#w=[^~]*~(.+)/); if(m && m[1]) return decodePayload(m[1]); m = h.match(/#enc=(.+)/); if(m && m[1]) return decodePayload(m[1]); const raw = (h[1] === undefined) ? h.slice(1) : h.replace(/^#/,''); if(raw.length > 20){ const dec = decodePayload(raw); if(dec) return dec; } return null; }
+function decodePayload(str){ try{ const rev = str.split('').reverse().join(''); const json = decodeURIComponent(escape(atob(rev))); return JSON.parse(json); }catch(e){ return null } }
+</script></body>
+</html>
